@@ -13,7 +13,8 @@ T5_PROMPT = {"wiki_bio": "convert the table to text: ",
              "xsum": "summarize: ",
              "wmt16_ro-en": "translate Romanian to English: ",
              "java": "<java> ",
-             "python": "<python> "
+             "python": "<python> ",
+             "qqp": "paraphrase: "
              }
 
 
@@ -29,8 +30,8 @@ def tokenize_raw(ds_name, model="t5-small", ptm_alias="t5", prompt=""):
     tokenized_dir = f"{TOKENIED_FILE_DIR}/{ds_name}"
     if not os.path.exists(tokenized_dir):
         os.makedirs(tokenized_dir)
-    files = ["val.jsonl", "train.jsonl"]
-    files_tokenized = [f"val.{ptm_alias}.jsonl", f"train.{ptm_alias}.jsonl"]
+    files = ["val.jsonl", "train.jsonl", "test.jsonl"]
+    files_tokenized = [f"val.{ptm_alias}.jsonl", f"train.{ptm_alias}.jsonl", f"test.{ptm_alias}.jsonl"]
     insts_list = []
     for file in files:
         insts = []
