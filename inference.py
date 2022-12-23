@@ -21,7 +21,8 @@ prompt = {"wiki_bio": "convert the table to text: ",
           "xsum": "summarize: ",
           "wmt16_ROEN": "translate Romanian to English: ",
           "java": "<java> ",
-          "python": "<python> "
+          "python": "<python> ",
+          "qqp": "paraphrase: "
           }
 
 

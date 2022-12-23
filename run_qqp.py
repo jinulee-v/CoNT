@@ -20,6 +20,7 @@ if __name__ == '__main__':
                         help="if you set warmup=False ensure `WARM_UP_PATH` not empty")
     parser.add_argument('--gpus', default="0,1,2,3")
     parser.add_argument('--model_name', default="t5-small", choices=["t5-small", WARM_UP_PATH + "t5"])
+    parser.add_argument('--ckpt', default=None)
     parser.add_argument('--accum_count', default=1)
     parser.add_argument('--warmup_batch_size', default=64)
     parser.add_argument('--batch_size', default=16)
@@ -44,17 +45,19 @@ if __name__ == '__main__':
         args.warmup = False
         base_model_cont = args.model_name
 
-    inference_param = f" --alpha 0.5 --length_pen {length_pen} --max_length 128 --min_length 0 "
+    inference_param = f" --alpha 0.5 --length_pen {length_pen} --max_length 512 --min_length 0 "
     if args.mode != "train":
         test_cmd = f"python inference.py --gpus {args.gpus}  --dataset {DATASET} " \
                    f" --batch_size {args.batch_size} --model_name {args.model_name} " \
                    f" --mode {args.mode} --PTM {ptm} --save_path {args.save_path} " \
                    f" --beam_size 8 --early_stop True  {inference_param} "
+        if args.ckpt is not None:
+            test_cmt += f"--ckpt {args.ckpt} "
         run(test_cmd)
 
     else:
         num_process = len(args.gpus.split(','))
-        train_cmd = f" python train.py  --gpus {args.gpus} --mode train --max_src_len 512 --max_tgt_len 128 " \
+        train_cmd = f" python train.py  --gpus {args.gpus} --mode train --max_src_len 512 --max_tgt_len 512 " \
                     f" --lr 1e-3 --dataset {DATASET} --PTM {ptm}  --accum_count {args.accum_count} " \
                     f" --beam_size 12 --diversity_pen 2.0 {inference_param} "
         if args.warmup:
