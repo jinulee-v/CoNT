@@ -43,7 +43,7 @@ def generate_batch(sources, targets, article_ids, model, device, sys_file, ref_f
     for i in range(batch_size):
         dec = tokenizer.decode(cand_id[i], skip_special_tokens=True, clean_up_tokenization_spaces=False)
         sys_outs.append(dec)
-        ref_outs.append(targets[i])
+        ref_outs.append(sources[i].replace(prompt[args.dataset], "")) # To compare the variance from the original source, we use source as reference.
 
     with open(sys_file, "a") as f:
         for i in range(len(article_ids)):

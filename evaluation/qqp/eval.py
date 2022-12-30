@@ -10,6 +10,9 @@ from tqdm import tqdm
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 import torch
 from torch.nn.utils.rnn import pad_sequence
+from bleurt.score import BleurtScorer
+
+import matplotlib.pyplot as plt
 
 hg_model_hub_name = "ynie/roberta-large-snli_mnli_fever_anli_R1_R2_R3-nli"
 tokenizer = AutoTokenizer.from_pretrained(hg_model_hub_name)
@@ -58,11 +61,10 @@ def get_apt_score(s1, s2):
     mi_score = (torch.argmax(get_mi_score(s1, s2), dim=1) == 0) * (torch.argmax(get_mi_score(s2, s1), dim=1) == 0)
     mi_score = mi_score.float()
 
-    from bleurt.score import BleurtScorer
     bleurt_scorer = BleurtScorer()
     bleurt_score = torch.tensor([(x+y)/2 for x, y in zip(bleurt_scorer.score(references=s1, candidates=s2), bleurt_scorer.score(references=s2, candidates=s1))]).to(device)
 
-    return mi_score / ((1 + torch.exp(5 * bleurt_score)) ** 2)
+    return (mi_score / ((1 + torch.exp(5 * bleurt_score)) ** 2)).tolist(), mi_score.tolist(), bleurt_score.tolist()
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -90,12 +92,30 @@ if __name__ == '__main__':
         assert len(sys_outputs) == len(ref_outputs)
         
         # Calculate apt score
-        apt_score = get_apt_score(sys_outputs, ref_outputs).tolist()
+        apt_score, mi_score, bleurt_score = get_apt_score(sys_outputs, ref_outputs)
         
         # Statistics
+        print("Total: ", len(apt_score))
+        coentail_count = len([x for x in mi_score if x > 0])
+        print("\nCo-entailment: ", coentail_count, "(", coentail_count / len(mi_score)*100, "% )")
+
+        coentail_bleurt = sorted([y for x, y in zip(mi_score, bleurt_score) if x > 0])
+        print("Amongst co-entail paraphrases...")
+        print("mean: ", sum(coentail_bleurt) / len(coentail_bleurt))
+        print("min:  ", min(coentail_bleurt))
+        print("Q1:   ", coentail_bleurt[1 * len(coentail_bleurt) // 4])
+        print("Q2:   ", coentail_bleurt[2 * len(coentail_bleurt) // 4])
+        print("Q3:   ", coentail_bleurt[3 * len(coentail_bleurt) // 4])
+        print("max:  ", max(coentail_bleurt))
+
         apt_score = sorted(apt_score)
+        print("\nAPT score statistics")
         print("mean: ", sum(apt_score) / len(apt_score))
+        print("min:  ", min(apt_score))
         print("Q1:   ", apt_score[1 * len(apt_score) // 4])
         print("Q2:   ", apt_score[2 * len(apt_score) // 4])
         print("Q3:   ", apt_score[3 * len(apt_score) // 4])
+        print("max:  ", max(apt_score))
 
+        plt.hist(apt_score, bins=20)
+        plt.show(block=True)

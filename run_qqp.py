@@ -52,7 +52,7 @@ if __name__ == '__main__':
                    f" --mode {args.mode} --PTM {ptm} --save_path {args.save_path} " \
                    f" --beam_size 8 --early_stop True  {inference_param} "
         if args.ckpt is not None:
-            test_cmt += f"--ckpt {args.ckpt} "
+            test_cmd += f"--ckpt {args.ckpt} "
         run(test_cmd)
 
     else:
