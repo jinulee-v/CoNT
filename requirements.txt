@@ -1,0 +1,9 @@
+# CoNT
+torch
+transformers==4.21.0
+fastnlp==1.0.0beta
+sortedcontainers
+sentencepiece
+
+# APT
+./bleurt
